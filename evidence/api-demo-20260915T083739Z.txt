@@ -1,0 +1,600 @@
+A3 API demo run 20260915T083739Z   worker=https://team11-transport-parking.kanthiphs.workers.dev   db=team11-transport-parking
+
+== DB proof — migrations applied to the REMOTE database
+========================================================================
+  ✅ No migrations to apply!
+
+== DB proof — tables (note: NO journeys table — journeys are computed, PRD 3.2)
+========================================================================
+table_name | triggers
+------------------------------------------------------------------------
+alerts | 0
+availability | 2
+parking_zones | 0
+route_stops | 0
+routes | 0
+stops | 0
+vehicles | 0
+zone_permit_types | 0
+routes | stops | route_stops | vehicles | zones | zone_permit_types | availability | alerts
+------------------------------------------------------------------------
+3 | 5 | 10 | 4 | 4 | 7 | 4 | 0
+
+== API-1 / API-2 — routes (public)
+========================================================================
+
+[2026-09-15T08:37:47.179Z] GET /v1/routes
+  -> HTTP 200
+  {
+    "count": 2,
+    "data": [
+      {
+        "id": "R1",
+        "name": "Campus Loop",
+        "active": 1,
+        "created_at": "2026-09-15T08:36:02.609Z",
+        "updated_at": "2026-09-15T08:36:02.609Z",
+        "stop_count": 5
+      },
+      {
+        "id": "R2",
+        "name": "Dorm Express",
+        "active": 1,
+        "created_at": "2026-09-15T08:36:02.609Z",
+        "updated_at": "2026-09-15T08:36:02.609Z",
+        "stop_count": 3
+      }
+    ]
+  }
+
+[2026-09-15T08:37:47.613Z] GET /v1/routes/R1/stops
+  -> HTTP 200
+  {
+    "route_id": "R1",
+    "count": 5,
+    "data": [
+      {
+        "id": "S-GATE",
+        "name": "Main Gate",
+        "lat": 20.0424,
+        "lng": 99.8951,
+        "seq": 1
+      },
+      {
+        "id": "S-LIB",
+        "name": "Learning Resource Ctr",
+        "lat": 20.0455,
+        "lng": 99.893,
+        "seq": 2
+      },
+      {
+        "id": "S-E1",
+        "name": "E1 Building",
+        "lat": 20.047,
+        "lng": 99.8912,
+        "seq": 3
+      },
+      {
+        "id": "S-C5",
+        "name": "C5 Lecture Hall",
+        "lat": 20.0489,
+        "lng": 99.8898,
+        "seq": 4
+      },
+      {
+        "id": "S-DORM",
+        "name": "Lamduan Dormitories",
+        "lat": 20.0512,
+        "lng": 99.8869,
+        "seq": 5
+      }
+    ]
+  }
+
+== API-3 — vehicles on a route (public)
+========================================================================
+
+[2026-09-15T08:37:47.938Z] GET /v1/vehicles?routeId=R1
+  -> HTTP 200
+  {
+    "count": 2,
+    "data": [
+      {
+        "id": "V-01",
+        "route_id": "R1",
+        "last_stop_id": "S-LIB",
+        "eta_next_stop_sec": 180,
+        "delay_sec": 0,
+        "updated_at": "2026-09-15T08:36:02.609Z"
+      },
+      {
+        "id": "V-02",
+        "route_id": "R1",
+        "last_stop_id": "S-C5",
+        "eta_next_stop_sec": 240,
+        "delay_sec": 60,
+        "updated_at": "2026-09-15T08:36:02.609Z"
+      }
+    ]
+  }
+
+== API-4 — parking filtered by permit (public)
+========================================================================
+
+[2026-09-15T08:37:48.251Z] GET /v1/parking?permitType=staff
+  -> HTTP 200
+  {
+    "count": 2,
+    "data": [
+      {
+        "id": "Z-E1",
+        "name": "E1 Staff Parking",
+        "capacity": 40,
+        "lat": 20.0468,
+        "lng": 99.8905,
+        "free": 12,
+        "version": 1,
+        "updated_at": "2026-09-15T08:36:02.609Z",
+        "permit_types": [
+          "disabled",
+          "staff"
+        ]
+      },
+      {
+        "id": "Z-LIB",
+        "name": "Library Car Park",
+        "capacity": 80,
+        "lat": 20.0452,
+        "lng": 99.8938,
+        "free": 0,
+        "version": 1,
+        "updated_at": "2026-09-15T08:36:02.609Z",
+        "permit_types": [
+          "staff",
+          "student"
+        ]
+      }
+    ]
+  }
+
+[2026-09-15T08:37:48.558Z] GET /v1/parking/Z-LIB
+  -> HTTP 200
+  {
+    "id": "Z-LIB",
+    "name": "Library Car Park",
+    "capacity": 80,
+    "lat": 20.0452,
+    "lng": 99.8938,
+    "free": 0,
+    "version": 1,
+    "updated_at": "2026-09-15T08:36:02.609Z",
+    "permit_types": [
+      "staff",
+      "student"
+    ]
+  }
+
+== API-7 — journey planner (computed per request, never stored)
+========================================================================
+
+[2026-09-15T08:37:48.972Z] GET /v1/journeys?origin=S-GATE&dest=S-DORM&permitType=student
+  -> HTTP 200
+  {
+    "origin": {
+      "id": "S-GATE",
+      "name": "Main Gate"
+    },
+    "destination": {
+      "id": "S-DORM",
+      "name": "Lamduan Dormitories"
+    },
+    "shuttle": {
+      "route_id": "R1",
+      "route_name": "Campus Loop",
+      "stops_to_ride": 4,
+      "next_vehicle": {
+        "id": "V-01",
+        "last_stop_id": "S-LIB",
+        "eta_next_stop_sec": 180,
+        "delay_sec": 0,
+        "updated_at": "2026-09-15T08:36:02.609Z"
+      }
+    },
+    "parking": {
+      "id": "Z-DORM",
+      "name": "Dormitory Car Park",
+      "capacity": 200,
+      "lat": 20.0515,
+      "lng": 99.8875,
+      "free": 133,
+      "version": 1,
+      "updated_at": "2026-09-15T08:36:02.609Z",
+      "permit_types": [
+        "student"
+      ]
+    },
+    "source": "deterministic",
+    "stored": false,
+    "computed_at": "2026-09-15T08:37:50.239Z"
+  }
+
+[2026-09-15T08:37:49.899Z] GET /v1/journeys?origin=S-DORM&dest=S-LIB
+  -> HTTP 200
+  {
+    "origin": {
+      "id": "S-DORM",
+      "name": "Lamduan Dormitories"
+    },
+    "destination": {
+      "id": "S-LIB",
+      "name": "Learning Resource Ctr"
+    },
+    "shuttle": null,
+    "parking": {
+      "id": "Z-E1",
+      "name": "E1 Staff Parking",
+      "capacity": 40,
+      "lat": 20.0468,
+      "lng": 99.8905,
+      "free": 12,
+      "version": 1,
+      "updated_at": "2026-09-15T08:36:02.609Z",
+      "permit_types": [
+        "disabled",
+        "staff"
+      ]
+    },
+    "source": "deterministic",
+    "stored": false,
+    "computed_at": "2026-09-15T08:37:50.634Z"
+  }
+
+== Trust boundary — the PRD error model
+========================================================================
+
+[2026-09-15T08:37:50.283Z] PATCH /v1/parking/Z-GATE
+  body: {"free":40,"version":1}
+  -> HTTP 401
+  {
+    "error": "Bearer token required"
+  }
+
+[2026-09-15T08:37:50.645Z] PATCH /v1/parking/Z-GATE
+  Authorization: <Bearer …>
+  body: {"free":40,"version":1}
+  -> HTTP 403
+  {
+    "error": "Requires role: operator",
+    "your_role": "dispatcher"
+  }
+
+[2026-09-15T08:37:50.931Z] GET /v1/parking/not%20valid
+  -> HTTP 400
+  {
+    "error": "Invalid id"
+  }
+
+[2026-09-15T08:37:51.186Z] GET /v1/parking/Z-NOPE
+  -> HTTP 404
+  {
+    "error": "Zone not found"
+  }
+
+== API-5 — operator updates availability with optimistic concurrency
+========================================================================
+  current version read from GET: 1
+  -- two operators send PATCH carrying the SAME version (a real race, sent concurrently)
+  operator B -> HTTP 200
+  operator A -> HTTP 409
+  operator A body: {"error":"Version conflict: another operator updated this zone first","your_version":1,"current":{"free":43,"version":2}}
+  operator B body: {"id":"Z-GATE","name":"Main Gate Car Park","capacity":120,"lat":20.042,"lng":99.8958,"free":43,"version":2,"updated_at":"2026-09-15T08:37:52.502Z","permit_types":["student","visitor"],"events":[]}
+
+[2026-09-15T08:37:52.360Z] GET /v1/parking/Z-GATE
+  -> HTTP 200
+  {
+    "id": "Z-GATE",
+    "name": "Main Gate Car Park",
+    "capacity": 120,
+    "lat": 20.042,
+    "lng": 99.8958,
+    "free": 43,
+    "version": 2,
+    "updated_at": "2026-09-15T08:37:52.502Z",
+    "permit_types": [
+      "student",
+      "visitor"
+    ]
+  }
+
+== Invariant 0 <= free <= capacity — enforced by the DATABASE trigger, not only the API
+========================================================================
+
+[2026-09-15T08:37:53.109Z] PATCH /v1/parking/Z-E1
+  Authorization: <Bearer …>
+  body: {"free":999,"version":1}
+  -> HTTP 422
+  {
+    "error": "free must be <= capacity"
+  }
+
+== Edge-triggered event — free goes >0 -> 0 raises parking.full (PRD 4.4)
+========================================================================
+
+[2026-09-15T08:37:53.457Z] PATCH /v1/parking/Z-E1
+  Authorization: <Bearer …>
+  body: {"free":0,"version":1}
+  -> HTTP 200
+  {
+    "id": "Z-E1",
+    "name": "E1 Staff Parking",
+    "capacity": 40,
+    "lat": 20.0468,
+    "lng": 99.8905,
+    "free": 0,
+    "version": 2,
+    "updated_at": "2026-09-15T08:37:54.439Z",
+    "permit_types": [
+      "disabled",
+      "staff"
+    ],
+    "events": [
+      "parking.full"
+    ]
+  }
+
+== CRUD — parking zones (operator)
+========================================================================
+
+[2026-09-15T08:37:54.395Z] POST /v1/parking
+  Authorization: <Bearer …>
+  body: {"id":"Z-DEMO-20260915T083739Z","name":"Demo Overflow Lot","capacity":30,"lat":20.0430,"lng":99.8960,"permitTypes":["visitor","student"],"free":30}
+  -> HTTP 201
+  {
+    "id": "Z-DEMO-20260915T083739Z",
+    "name": "Demo Overflow Lot",
+    "capacity": 30,
+    "lat": 20.043,
+    "lng": 99.896,
+    "free": 30,
+    "version": 1,
+    "updated_at": "2026-09-15T08:37:55.174Z",
+    "permit_types": [
+      "student",
+      "visitor"
+    ]
+  }
+
+[2026-09-15T08:37:55.014Z] PUT /v1/parking/Z-DEMO-20260915T083739Z
+  Authorization: <Bearer …>
+  body: {"name":"Demo Overflow Lot (resized)","capacity":20,"lat":20.0430,"lng":99.8960,"permitTypes":["visitor"]}
+  -> HTTP 200
+  {
+    "id": "Z-DEMO-20260915T083739Z",
+    "name": "Demo Overflow Lot (resized)",
+    "capacity": 20,
+    "lat": 20.043,
+    "lng": 99.896,
+    "free": 20,
+    "version": 2,
+    "updated_at": "2026-09-15T08:37:55.821Z",
+    "permit_types": [
+      "visitor"
+    ]
+  }
+
+[2026-09-15T08:37:55.556Z] DELETE /v1/parking/Z-DEMO-20260915T083739Z
+  Authorization: <Bearer …>
+  -> HTTP 200
+  {
+    "deleted": "Z-DEMO-20260915T083739Z",
+    "note": "availability and zone_permit_types cascaded"
+  }
+
+[2026-09-15T08:37:55.862Z] GET /v1/parking/Z-DEMO-20260915T083739Z
+  -> HTTP 404
+  {
+    "error": "Zone not found"
+  }
+
+== CRUD — routes & stops (dispatcher); route + ordered stops written in one D1 batch (transaction)
+========================================================================
+
+[2026-09-15T08:37:56.131Z] POST /v1/stops
+  Authorization: <Bearer …>
+  body: {"id":"S-DEMO-20260915T083739Z","name":"Demo Stop","lat":20.0440,"lng":99.8920}
+  -> HTTP 201
+  {
+    "id": "S-DEMO-20260915T083739Z",
+    "name": "Demo Stop",
+    "lat": 20.044,
+    "lng": 99.892
+  }
+
+[2026-09-15T08:37:56.470Z] POST /v1/routes
+  Authorization: <Bearer …>
+  body: {"id":"R-DEMO-20260915T083739Z","name":"Demo Shuttle","stops":["S-GATE","S-DEMO-20260915T083739Z","S-LIB"]}
+  -> HTTP 201
+  {
+    "id": "R-DEMO-20260915T083739Z",
+    "name": "Demo Shuttle",
+    "active": 1,
+    "created_at": "2026-09-15T08:37:57.275Z",
+    "updated_at": "2026-09-15T08:37:57.275Z",
+    "stops": [
+      {
+        "id": "S-GATE",
+        "name": "Main Gate",
+        "lat": 20.0424,
+        "lng": 99.8951,
+        "seq": 1
+      },
+      {
+        "id": "S-DEMO-20260915T083739Z",
+        "name": "Demo Stop",
+        "lat": 20.044,
+        "lng": 99.892,
+        "seq": 2
+      },
+      {
+        "id": "S-LIB",
+        "name": "Learning Resource Ctr",
+        "lat": 20.0455,
+        "lng": 99.893,
+        "seq": 3
+      }
+    ]
+  }
+
+[2026-09-15T08:37:57.042Z] PUT /v1/routes/R-DEMO-20260915T083739Z
+  Authorization: <Bearer …>
+  body: {"name":"Demo Shuttle (rerouted)","active":true,"stops":["S-GATE","S-LIB"]}
+  -> HTTP 200
+  {
+    "id": "R-DEMO-20260915T083739Z",
+    "name": "Demo Shuttle (rerouted)",
+    "active": 1,
+    "created_at": "2026-09-15T08:37:57.275Z",
+    "updated_at": "2026-09-15T08:37:57.856Z",
+    "stops": [
+      {
+        "id": "S-GATE",
+        "name": "Main Gate",
+        "lat": 20.0424,
+        "lng": 99.8951,
+        "seq": 1
+      },
+      {
+        "id": "S-LIB",
+        "name": "Learning Resource Ctr",
+        "lat": 20.0455,
+        "lng": 99.893,
+        "seq": 2
+      }
+    ]
+  }
+
+  -- ON DELETE RESTRICT: a stop still on a route cannot be deleted
+
+[2026-09-15T08:37:57.639Z] DELETE /v1/stops/S-LIB
+  Authorization: <Bearer …>
+  -> HTTP 409
+  {
+    "error": "Stop is still used by routes; remove it from them first",
+    "routes": [
+      "R-DEMO-20260915T083739Z",
+      "R1"
+    ]
+  }
+
+[2026-09-15T08:37:58.022Z] DELETE /v1/stops/S-DEMO-20260915T083739Z
+  Authorization: <Bearer …>
+  -> HTTP 200
+  {
+    "deleted": "S-DEMO-20260915T083739Z"
+  }
+
+[2026-09-15T08:37:58.640Z] DELETE /v1/routes/R-DEMO-20260915T083739Z
+  Authorization: <Bearer …>
+  -> HTTP 200
+  {
+    "deleted": "R-DEMO-20260915T083739Z",
+    "note": "route_stops cascaded; vehicles on this route now have route_id = NULL"
+  }
+
+== CRUD — vehicles (dispatcher); delaySec >= 300 raises route.delayed
+========================================================================
+
+[2026-09-15T08:37:59.289Z] POST /v1/vehicles
+  Authorization: <Bearer …>
+  body: {"id":"V-DEMO-20260915T083739Z","routeId":"R2","lastStopId":"S-DORM","etaNextStopSec":120}
+  -> HTTP 201
+  {
+    "id": "V-DEMO-20260915T083739Z",
+    "route_id": "R2",
+    "last_stop_id": "S-DORM",
+    "eta_next_stop_sec": 120,
+    "delay_sec": 0,
+    "updated_at": "2026-09-15T08:37:59.952Z"
+  }
+
+[2026-09-15T08:37:59.680Z] PATCH /v1/vehicles/V-DEMO-20260915T083739Z
+  Authorization: <Bearer …>
+  body: {"lastStopId":"S-E1","etaNextStopSec":30,"delaySec":360}
+  -> HTTP 200
+  {
+    "id": "V-DEMO-20260915T083739Z",
+    "route_id": "R2",
+    "last_stop_id": "S-E1",
+    "eta_next_stop_sec": 30,
+    "delay_sec": 360,
+    "updated_at": "2026-09-15T08:38:00.623Z",
+    "events": [
+      "route.delayed"
+    ]
+  }
+
+[2026-09-15T08:38:00.450Z] DELETE /v1/vehicles/V-DEMO-20260915T083739Z
+  Authorization: <Bearer …>
+  -> HTTP 200
+  {
+    "deleted": "V-DEMO-20260915T083739Z"
+  }
+
+== API-6 — alerts (operator/dispatcher) + the system-raised events above
+========================================================================
+
+[2026-09-15T08:38:01.062Z] POST /v1/alerts
+  Authorization: <Bearer …>
+  body: {"message":"Campus Loop diverted via C5 until 16:00","routeId":"R1"}
+  -> HTTP 201
+  {
+    "id": 3,
+    "kind": "service.alert",
+    "route_id": "R1",
+    "zone_id": null,
+    "message": "Campus Loop diverted via C5 until 16:00",
+    "raised_by": "dispatcher",
+    "occurred_at": "2026-09-15T08:38:01.774Z"
+  }
+
+[2026-09-15T08:38:01.440Z] GET /v1/alerts
+  -> HTTP 200
+  {
+    "count": 3,
+    "data": [
+      {
+        "id": 3,
+        "kind": "service.alert",
+        "route_id": "R1",
+        "zone_id": null,
+        "message": "Campus Loop diverted via C5 until 16:00",
+        "raised_by": "dispatcher",
+        "occurred_at": "2026-09-15T08:38:01.774Z"
+      },
+      {
+        "id": 2,
+        "kind": "route.delayed",
+        "route_id": "R2",
+        "zone_id": null,
+        "message": "Vehicle V-DEMO-20260915T083739Z on R2 is 360s late",
+        "raised_by": "system",
+        "occurred_at": "2026-09-15T08:38:00.761Z"
+      },
+      {
+        "id": 1,
+        "kind": "parking.full",
+        "route_id": null,
+        "zone_id": "Z-E1",
+        "message": "Zone Z-E1 is full",
+        "raised_by": "system",
+        "occurred_at": "2026-09-15T08:37:54.571Z"
+      }
+    ]
+  }
+
+== Restore seed state so the run is repeatable
+========================================================================
+  Z-E1 free=12 -> HTTP 200
+  Z-GATE free=45 -> HTTP 200
+
+run complete 2026-09-15T08:38:02.821Z

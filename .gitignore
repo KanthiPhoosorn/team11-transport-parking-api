@@ -1,0 +1,10 @@
+node_modules/
+.wrangler/
+.dev.vars
+dist/
+*.log
+.DS_Store
+evidence/.body
+evidence/.headers
+evidence/.race1
+evidence/.race2

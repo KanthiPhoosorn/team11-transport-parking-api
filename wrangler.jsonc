@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "team11-transport-parking",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "observability": { "enabled": true },
+  // Secrets (wrangler secret put): OPERATOR_TOKEN, DISPATCHER_TOKEN
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "team11-transport-parking",
+      "database_id": "042ac000-cab2-4ff8-9501-bfd95c9ac903",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

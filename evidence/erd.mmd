@@ -1,0 +1,63 @@
+erDiagram
+    ROUTES ||--o{ ROUTE_STOPS : "visits, in order"
+    STOPS  ||--o{ ROUTE_STOPS : "is on"
+    ROUTES o|--o{ VEHICLES : "assigned"
+    STOPS  o|--o{ VEHICLES : "last passed"
+    PARKING_ZONES ||--|| AVAILABILITY : "current free count"
+    PARKING_ZONES ||--o{ ZONE_PERMIT_TYPES : "accepts"
+    ROUTES o|--o{ ALERTS : "about"
+    PARKING_ZONES o|--o{ ALERTS : "about"
+
+    ROUTES {
+        text id PK "slug id"
+        text name
+        int active "0 or 1"
+        text created_at
+        text updated_at
+    }
+    STOPS {
+        text id PK
+        text name
+        real lat
+        real lng
+    }
+    ROUTE_STOPS {
+        text route_id PK, FK "ON DELETE CASCADE"
+        text stop_id PK, FK "ON DELETE RESTRICT"
+        int seq "UNIQUE per route"
+    }
+    VEHICLES {
+        text id PK
+        text route_id FK "nullable, SET NULL"
+        text last_stop_id FK "nullable, SET NULL"
+        int eta_next_stop_sec
+        int delay_sec
+        text updated_at
+    }
+    PARKING_ZONES {
+        text id PK
+        text name
+        int capacity "positive"
+        real lat
+        real lng
+        text created_at
+    }
+    ZONE_PERMIT_TYPES {
+        text zone_id PK, FK "CASCADE"
+        text permit_type PK "student, staff, visitor, disabled"
+    }
+    AVAILABILITY {
+        text zone_id PK, FK "CASCADE"
+        int free "0..capacity, trigger-enforced"
+        int version "optimistic concurrency"
+        text updated_at
+    }
+    ALERTS {
+        int id PK
+        text kind "service.alert, route.delayed, parking.full"
+        text route_id FK "nullable"
+        text zone_id FK "nullable"
+        text message
+        text raised_by
+        text occurred_at
+    }

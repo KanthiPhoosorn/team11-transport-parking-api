@@ -1,0 +1,26 @@
+{
+  "name": "team11-transport-parking-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Team 11 Transport & Parking \u2014 Assignment 3 data + query design on Cloudflare D1",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run",
+    "migrate:local": "wrangler d1 migrations apply team11-transport-parking --local",
+    "migrate:remote": "wrangler d1 migrations apply team11-transport-parking --remote",
+    "migrations:list": "wrangler d1 migrations list team11-transport-parking --remote"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.9.0",
+    "hono": "^4.13.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260818.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.123.0"
+  }
+}
