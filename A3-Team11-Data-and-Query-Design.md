@@ -100,6 +100,8 @@ vehicles          | 0
 zone_permit_types | 0
 ```
 
+(`updated_at` values of `2026-09-15T08:36:02.609Z` seen in the examples below are the moment `0002_seed.sql` was applied remotely.)
+
 The same migrations applied to a local D1 first; the trigger (`free exceeds zone capacity`), the `RESTRICT` (`FOREIGN KEY constraint failed` on deleting `S-LIB`) and the cascade (deleting `R9` left 0 `route_stops` rows) were all exercised at the SQL level before anything was deployed.
 
 ## 6. API
@@ -220,7 +222,7 @@ GET /v1/alerts                                                        → 200
   { "id": 1, "kind": "parking.full",  "zone_id": "Z-E1", "message": "Zone Z-E1 is full",                       "raised_by": "system" } ] }
 ```
 
-`parking.full` fires only on the transition `free > 0 → 0` (setting an already-full zone to 0 again raises nothing). Delivering these to the Notification Hub as a signed webhook is Assignment 5.
+`parking.full` fires only on the transition `free > 0 → 0` (setting an already-full zone to 0 again raises nothing). Delivering these to the Notification Hub as a signed webhook is Assignment 5 — note that a partner Worker on the *same* Cloudflare account cannot be reached with `fetch()` on `*.workers.dev` (error 1042); other teams' accounts are fine.
 
 ### 7.8 Full CRUD on a parking zone (operator)
 
